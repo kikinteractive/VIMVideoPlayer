@@ -60,6 +60,9 @@ static void *VideoPlayer_PlayerItemLoadedTimeRangesContext = &VideoPlayer_Player
 @end
 
 @implementation VIMVideoPlayer
+{
+    BOOL audioSessionAlreadyConfigured;
+}
 
 - (void)dealloc
 {
@@ -83,8 +86,6 @@ static void *VideoPlayer_PlayerItemLoadedTimeRangesContext = &VideoPlayer_Player
         [self setupPlayer];
         
         [self addPlayerObservers];
-
-        [self setupAudioSession];
     }
     
     return self;
@@ -106,6 +107,12 @@ static void *VideoPlayer_PlayerItemLoadedTimeRangesContext = &VideoPlayer_Player
 
 - (void)setupAudioSession
 {
+    if (audioSessionAlreadyConfigured) {
+        return;
+    }
+
+    audioSessionAlreadyConfigured = YES;
+    
     NSError *categoryError = nil;
     BOOL success = [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&categoryError];
     if (!success)
@@ -188,6 +195,14 @@ static void *VideoPlayer_PlayerItemLoadedTimeRangesContext = &VideoPlayer_Player
 - (BOOL)isMuted
 {
     return self.player.isMuted;
+}
+
+- (void)setShouldConfigureAudioSession:(BOOL)shouldConfigureAudioSession {
+    _shouldConfigureAudioSession = shouldConfigureAudioSession;
+
+    if (shouldConfigureAudioSession) {
+        [self setupAudioSession];
+    }
 }
 
 #pragma mark - Playback
